@@ -50,3 +50,102 @@ Plots.default(; margin=6Plots.mm)
 include("depthdamage.jl")
 ```
 
+Load in our data.
+```{julia}
+haz_fl_dept = CSV.read("data/haz_fl_dept.csv", DataFrame) # read in the file
+desc = "one story, Contents, fresh water, short duration"
+row = @rsubset(haz_fl_dept, :Description == desc)[1, :] # select the row I want
+dd = DepthDamageData(row) # extract the depth-damage data
+damage_fn = get_depth_damage_function(dd.depths, dd.damages) # get the depth-damage function
+
+```
+
+One should never pass up an opportunity to plot a graph.
+```{julia}
+p = let
+    depths = uconvert.(u"ft", (-7.0u"ft"):(1.0u"inch"):(30.0u"ft"))
+    damages = damage_fn.(depths)
+    scatter(
+        depths,
+        damages;
+        xlabel="Flood Depth",
+        ylabel="Damage (%)",
+        label="$(dd.description) ($(dd.source))",
+        legend=:bottomright,
+        size=(800, 400),
+        linewidth=2,
+    )
+end
+p
+```
+
+```{julia}
+gauge_dist = GeneralizedExtremeValue(5, 1, 0.1) # hypothetical gauge distribution
+offset = 7.5 # hypothetical height from house to gauge
+flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
+```
+
+```{julia}
+elevation_cost = get_elevation_cost_function() # gives us a fitted interpolator
+```
+
+```{julia}
+house_area = 1000u"ft^2"
+
+heights = uconvert.(u"ft", (0u"ft"):(1u"inch"):(10u"ft")) # some heights we will consider
+plot(
+    heights,
+    elevation_cost.(heights, house_area);
+    xlabel="How High to Elevate",
+    ylabel="Cost (USD)",
+    label="$(house_area)",
+    tiitle="Cost of Elevating a House",
+)
+```
+
+Single Year Function:
+```{julia}
+function single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
+    
+    # calculate the expected damages
+    samples = rand(flood_dist, 100_000) .* 1u"ft"
+    damages = damage_fn.(samples)
+    expected_damages_pct = mean(damages)
+ 
+    c_dmg = house_value * expected_damages_pct / 100
+
+    # calculate the cost of elevating
+    c_constr = elevation_cost(Δh, house_area)
+
+    # return the total cost and benefit
+    return -c_constr - c_dmg
+end
+```
+
+```{julia}
+house_area = 1000u"ft^2"
+Δh = 10u"ft"
+house_value = 250_000
+c_constr = elevation_cost(Δh, house_area)
+
+
+samples = rand(flood_dist, 100_000) .* 1u"ft"
+damages = damage_fn.(samples)
+expected_damages_pct = mean(damages)
+print(expected_damages_pct, "\n")
+
+c_dmg = house_value * expected_damages_pct / 100
+
+print(c_dmg)
+print("\n", c_constr)
+```
+
+
+```{julia}
+house_area = 1000u"ft^2"
+Δh = 10u"ft"
+house_value = 250_000
+single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
+```
+
+
