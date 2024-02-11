@@ -173,14 +173,29 @@ function npv_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, hou
 end
 ```
 
+Let's make our single state of the world for a few actions
 ```{julia}
 T = 10
 discount_rate = 0.05
-Δh = 0u"ft"
-npv_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, discount_rate)
+house_area = 1000u"ft^2"
+house_value = 250_000
+elevation_cost = get_elevation_cost_function() # gives us a fitted interpolator
 
-# for year in 2:T
-#     print(year)
-# end
+gauge_dist = GeneralizedExtremeValue(5, 1, 0.1) # hypothetical gauge distribution
+offset = 7.5 # hypothetical height from house to gauge
+flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
+
+for i in range(start=0, stop=10, length=5)
+    Δh = i * 1u"ft"
+    println("For ", Δh)
+    npv = npv_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, discount_rate)
+    println("NPV = ", npv)
+end 
+#Δh = 0u"ft"
+#npv_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, discount_rate)
+
+
 ```
+
+For the given SOW of a house 7.5 ft above sea level, a discount rate of 5%, and the flooding and damage functions given, the higher we elevate the house, the lower our net present value.  THe cost of elevating is very high, and with the numbers how we have calcualted them, seems to not be worth it over a 10 year period.
 
