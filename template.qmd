@@ -188,7 +188,7 @@ house_value = 250_000
 elevation_cost = get_elevation_cost_function() # gives us a fitted interpolator
 
 gauge_dist = GeneralizedExtremeValue(5, 1, 0.1) # hypothetical gauge distribution
-offset = 7.5 # hypothetical height from house to gauge
+offset = 7.25 # hypothetical height from house to gauge
 flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
 
 for i in range(start=0, stop=10, length=5)
@@ -219,7 +219,7 @@ house_value = 250_000
 elevation_cost = get_elevation_cost_function() # gives us a fitted interpolator
 
 gauge_dist = GeneralizedExtremeValue(5, 1, 0.1) # hypothetical gauge distribution
-offset = 7.5 # hypothetical height from house to gauge
+offset = 7.25 # hypothetical height from house to gauge
 flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
 
 #Δh = 0u"ft"
