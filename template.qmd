@@ -149,6 +149,7 @@ function npv_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, hou
     #print(npv)
     for year in 2:T
         Δh = 0u"ft"
+        #house_value = house_value*(1.1^(year-1))
         npv += single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh) * ((1-discount_rate)^(year-1))
     end 
     return npv
@@ -161,6 +162,9 @@ T = 10
 discount_rate = 0.05
 house_area = 1000u"ft^2"
 house_value = 250_000
+
+offset = 7.5# hypothetical height from house to gauge
+flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
 
 
 for i in range(start=0, stop=10, length=5)
@@ -178,7 +182,7 @@ For the given SOW of a house 7.5 ft above sea level, a discount rate of 5%, and 
 Sensitivity test:
 
 ```{julia}
-#let's start with 100 random samples for our discount rate:
+#let's start with 10 random samples for our discount rate:
 rates = rand(Normal(0.05, 0.03), 10)
 
 #Using the same state of the world as before:
@@ -196,3 +200,46 @@ end
 
 #mean(npv)
 ```
+
+1. The NPV varies depending on the action.  Elevating the house a small amount is worse than elevating it a larger amount.  Still, for our state of the world, the best option seems to be not elevate the house.  
+
+2. In our case, we do see our values change as a result of the sensitivity test, but they don't change enough to change the optimal decision.  The higest NPV is still to not elevate the house for this state of the world.  This is probaly because in the current SOW, the cost of raising the house is a very larege portion of the NPV, and since it's not impacted by the discount rate, neither are the results.  
+
+3. This analysis has a few limitations.  It does not address the value of things inside the home that might be damaged when the home is flooded, nor the psychological hardship of having one's home flooded, or the financial and emotional costs of having to deal with that.  It also doesn't address how the flood distribution may change over time if sea levels rise.  All of these factors bias the results towards not elevating the house. 
+
+We can address the fisrt limitation by trying to approximate the value of not having to deal with these events in dollars, although this is obviously a difficult and somewhat cynical activity.  
+
+For the second limitation, about how our model changes with climate change, we can alter the flood distribution as time goes on and look at the impact it has on our values.  As an example, let's see what happens if we modify our program so that it simulates sea levels rixing by 0.05 feet every year:
+
+
+
+```{julia}
+function SeaLevel_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, discount_rate)
+
+    npv = 0
+    npv += single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
+    sea_level = 0
+    for year in 2:T
+        sea_level += 0.05
+        Δh = 0u"ft"
+        flood_dist = GeneralizedExtremeValue(flood_dist.μ + sea_level, flood_dist.σ, flood_dist.ξ)
+        npv += single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh) * ((1-discount_rate)^(year-1))
+    end 
+    return npv
+end
+
+
+for i in range(start=0, stop=10, length=5)
+    Δh = i * 1u"ft"
+    println("For ", Δh)
+    h_dist = GeneralizedExtremeValue(flood_dist.μ - Δh.val, flood_dist.σ, flood_dist.ξ)
+    npvector = SeaLevel_cost_benefit.(h_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, rates)
+    npv = mean(npvector)
+    println("NPV = ", npv)
+
+end 
+
+```
+
+Suddenly the results change massively!  It now makes the most sense to elevate the house by 7.5 feet!
+
