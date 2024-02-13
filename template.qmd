@@ -11,18 +11,18 @@ format:
 
     # YOU DO NOT NEED BOTH PDF AND DOCX.
     # COMMENT OR DELETE THE ONE YOU DON'T WANT TO USE.
-    pdf:
-        documentclass: article
-        fontsize: 11pt
-        geometry:
-            - margin=1in  
-        number-sections: true
-        code-line-numbers: true
-    #docx: 
-    #    toc: true
-    #    fig-format: png
+    #pdf:
+    #    documentclass: article
+    #    fontsize: 11pt
+    #    geometry:
+    #        - margin=1in  
     #    number-sections: true
     #    code-line-numbers: true
+    docx: 
+        toc: true
+        fig-format: png
+        number-sections: true
+        code-line-numbers: true
 
 # these are optional
 # if you have cache=true, you'll need the jupyter-cache package installed
@@ -177,7 +177,7 @@ end
 
 ```
 
-For the given SOW of a house 7.5 ft above sea level, a discount rate of 5%, and the flooding and damage functions given, the higher we elevate the house, the lower our net present value.  The cost of elevating is very high, and with the numbers how we have calcualted them, seems to not be worth it over a 10 year period.
+For the given SOW of a house 7.5 ft above sea level, a discount rate of 5%, and the flooding and damage functions given, the higher we elevate the house, the lower our net present value.  The cost of elevating is very high, and with the numbers how we have calculated them, seems to not be worth it over a 10 year period.
 
 Sensitivity test:
 
@@ -203,11 +203,11 @@ end
 
 1. The NPV varies depending on the action.  Elevating the house a small amount is worse than elevating it a larger amount.  Still, for our state of the world, the best option seems to be not elevate the house.  
 
-2. In our case, we do see our values change as a result of the sensitivity test, but they don't change enough to change the optimal decision.  The higest NPV is still to not elevate the house for this state of the world.  This is probaly because in the current SOW, the cost of raising the house is a very larege portion of the NPV, and since it's not impacted by the discount rate, neither are the results.  Also, since our MonteCarlo approximation chooses 10 values, a good portion of those are probably close to the mean, making the results of the sensitivity test closer to the original.  If we only included the two extremes in a range of discount values, these results might change.
+2. In our case, we do see our values change as a result of the sensitivity test, but they don't change enough to change the optimal decision.  The highest NPV is still to not elevate the house for this state of the world.  This is probably because in the current SOW, the cost of raising the house is a very large portion of the NPV, and since it's not impacted by the discount rate, neither are the results.  Also, since our MonteCarlo approximation chooses 10 values, a good portion of those are probably close to the mean, making the results of the sensitivity test closer to the original.  If we only included the two extremes in a range of discount values, these results might change.
 
 3. This analysis has a few limitations.  It does not address the value of things inside the home that might be damaged when the home is flooded, nor the psychological hardship of having one's home flooded, or the financial and emotional costs of having to deal with that.  It also doesn't address how the flood distribution may change over time if sea levels rise.  All of these factors bias the results towards not elevating the house. 
 
-We can address the fisrt limitation by trying to approximate the value of not having to deal with these events in dollars, although this is obviously a difficult and somewhat cynical activity.  
+We can address the first limitation by trying to approximate the value of not having to deal with these events in dollars, although this is obviously a difficult and somewhat cynical activity.  
 
 For the second limitation, about how our model changes with climate change, we can alter the flood distribution as time goes on and look at the impact it has on our values.  As an example, let's see what happens if we modify our program so that it simulates sea levels rixing by 0.05 feet every year:
 
