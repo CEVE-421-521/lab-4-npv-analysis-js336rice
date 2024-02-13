@@ -134,7 +134,8 @@ Test out our function:
 house_area = 1000u"ft^2"
 Δh = 2.5u"ft"
 house_value = 250_000
-single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
+h_dist = GeneralizedExtremeValue(flood_dist.μ - Δh.val, flood_dist.σ, flood_dist.ξ)
+single_year_cost_benefit(h_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
 
 ```
 
@@ -169,8 +170,6 @@ for i in range(start=0, stop=10, length=5)
     npv = npv_cost_benefit(h_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, discount_rate)
     println("NPV = ", npv)
 end 
-
-
 
 ```
 
