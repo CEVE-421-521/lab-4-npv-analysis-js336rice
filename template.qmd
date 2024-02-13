@@ -60,7 +60,7 @@ damage_fn = get_depth_damage_function(dd.depths, dd.damages) # get the depth-dam
 
 ```
 
-One should never pass up an opportunity to plot a graph.
+One should never pass up an opportunity to plot an aesthetically pleasing graph.
 ```{julia}
 p = let
     depths = uconvert.(u"ft", (-7.0u"ft"):(1.0u"inch"):(30.0u"ft"))
@@ -108,7 +108,9 @@ Single Year Function:
 function single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
     
     # calculate the expected damages
-    samples = rand(flood_dist, 100_000) .* 1u"ft"
+    h_dist = GeneralizedExtremeValue(flood_dist.μ, flood_dist.σ, flood_dist.ξ)
+    #h_dist = flood_dist
+    samples = rand(h_dist, 100_000) .* 1u"ft"
     damages = damage_fn.(samples)
     expected_damages_pct = mean(damages)
  
@@ -118,46 +120,50 @@ function single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_a
     c_constr = elevation_cost(Δh, house_area)
 
     # return the total cost and benefit
+    #println(c_constr)
+    #println(c_dmg)
     return -c_constr - c_dmg
 end
 ```
 
 ```{julia}
-house_area = 1000u"ft^2"
-Δh = 10u"ft"
-house_value = 250_000
-c_constr = elevation_cost(Δh, house_area)
+# house_area = 1000u"ft^2"
+# Δh = 10u"ft"
+# house_value = 250_000
+# c_constr = elevation_cost(Δh, house_area)
 
 
-samples = rand(flood_dist, 100_000) .* 1u"ft"
-damages = damage_fn.(samples)
-expected_damages_pct = mean(damages)
-print(expected_damages_pct, "\n")
+# samples = rand(flood_dist, 100_000) .* 1u"ft"
+# damages = damage_fn.(samples)
+# expected_damages_pct = mean(damages)
+# #print(expected_damages_pct, "\n")
 
-c_dmg = house_value * expected_damages_pct / 100
+# c_dmg = house_value * expected_damages_pct / 100
 
-print(c_dmg)
-print("\n", c_constr)
+#print(c_dmg)
+#print("\n", c_constr)
 ```
 
-
+Test out our function: 
 ```{julia}
 house_area = 1000u"ft^2"
-Δh = 10u"ft"
+Δh = 2.5u"ft"
 house_value = 250_000
 single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
+
 ```
 
 ```{julia}
 function npv_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, discount_rate)
     # calculate the costs and benefits for each year, and then discount
     # see above!
+    h_dist = GeneralizedExtremeValue(flood_dist.μ - Δh.val, flood_dist.σ, flood_dist.ξ)
     npv = 0
-    npv += single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
+    npv += single_year_cost_benefit(h_dist, damage_fn, elevation_cost, house_area, house_value, Δh)
     #print(npv)
     for year in 2:T
         Δh = 0u"ft"
-        npv += single_year_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh) * ((1-discount_rate)^(year-1))
+        npv += single_year_cost_benefit(h_dist, damage_fn, elevation_cost, house_area, house_value, Δh) * ((1-discount_rate)^(year-1))
     end 
     # samples = rand(flood_dist, 100_000) .* 1u"ft"
     # damages = damage_fn.(samples)
@@ -197,5 +203,35 @@ end
 
 ```
 
-For the given SOW of a house 7.5 ft above sea level, a discount rate of 5%, and the flooding and damage functions given, the higher we elevate the house, the lower our net present value.  THe cost of elevating is very high, and with the numbers how we have calcualted them, seems to not be worth it over a 10 year period.
+For the given SOW of a house 7.5 ft above sea level, a discount rate of 5%, and the flooding and damage functions given, the higher we elevate the house, the lower our net present value.  The cost of elevating is very high, and with the numbers how we have calcualted them, seems to not be worth it over a 10 year period.
 
+Sensitivity test:
+
+```{julia}
+#let's start with 100 random samples for our discount rate:
+rates = rand(Normal(0.05, 0.03), 10)
+
+#Using the same state of the world as before:
+T = 10
+
+house_area = 1000u"ft^2"
+house_value = 250_000
+elevation_cost = get_elevation_cost_function() # gives us a fitted interpolator
+
+gauge_dist = GeneralizedExtremeValue(5, 1, 0.1) # hypothetical gauge distribution
+offset = 7.5 # hypothetical height from house to gauge
+flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
+
+#Δh = 0u"ft"
+
+for i in range(start=0, stop=10, length=5)
+    Δh = i * 1u"ft"
+    println("For ", Δh)
+    npvector = npv_cost_benefit.(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, rates)
+    npv = mean(npvector)
+    println("NPV = ", npv)
+end 
+#npv = npv_cost_benefit.(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, rates)
+
+#mean(npv)
+```
