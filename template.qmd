@@ -203,7 +203,7 @@ end
 
 1. The NPV varies depending on the action.  Elevating the house a small amount is worse than elevating it a larger amount.  Still, for our state of the world, the best option seems to be not elevate the house.  
 
-2. In our case, we do see our values change as a result of the sensitivity test, but they don't change enough to change the optimal decision.  The higest NPV is still to not elevate the house for this state of the world.  This is probaly because in the current SOW, the cost of raising the house is a very larege portion of the NPV, and since it's not impacted by the discount rate, neither are the results.  
+2. In our case, we do see our values change as a result of the sensitivity test, but they don't change enough to change the optimal decision.  The higest NPV is still to not elevate the house for this state of the world.  This is probaly because in the current SOW, the cost of raising the house is a very larege portion of the NPV, and since it's not impacted by the discount rate, neither are the results.  Also, since our MonteCarlo approximation chooses 10 values, a good portion of those are probably close to the mean, making the results of the sensitivity test closer to the original.  If we only included the two extremes in a range of discount values, these results might change.
 
 3. This analysis has a few limitations.  It does not address the value of things inside the home that might be damaged when the home is flooded, nor the psychological hardship of having one's home flooded, or the financial and emotional costs of having to deal with that.  It also doesn't address how the flood distribution may change over time if sea levels rise.  All of these factors bias the results towards not elevating the house. 
 
