@@ -209,7 +209,7 @@ end
 
 We can address the first limitation by trying to approximate the value of not having to deal with these events in dollars, although this is obviously a difficult and somewhat cynical activity.  
 
-For the second limitation, about how our model changes with climate change, we can alter the flood distribution as time goes on and look at the impact it has on our values.  As an example, let's see what happens if we modify our program so that it simulates sea levels rixing by 0.05 feet every year:
+For the second limitation, about how our model changes with climate change, we can alter the flood distribution as time goes on and look at the impact it has on our values.  As an example, let's see what happens if we modify our program so that it simulates sea levels rising by 0.05 feet every year:
 
 
 
