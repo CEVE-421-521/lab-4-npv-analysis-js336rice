@@ -53,8 +53,10 @@ include("depthdamage.jl")
 Load in our data.
 ```{julia}
 haz_fl_dept = CSV.read("data/haz_fl_dept.csv", DataFrame) # read in the file
-desc = "one story, Contents, fresh water, short duration"
-row = @rsubset(haz_fl_dept, :Description == desc)[1, :] # select the row I want
+#desc = "one story, Contents, fresh water, short duration"
+desc = "two-story, no basement in Galveston"
+#row = @rsubset(haz_fl_dept, :Description == desc)[1, :] # select the row I want
+row = @rsubset(haz_fl_dept, :Column1 == 98)[1, :,]
 dd = DepthDamageData(row) # extract the depth-damage data
 damage_fn = get_depth_damage_function(dd.depths, dd.damages) # get the depth-damage function
 
@@ -81,7 +83,7 @@ p
 
 ```{julia}
 gauge_dist = GeneralizedExtremeValue(5, 1, 0.1) # hypothetical gauge distribution
-offset = 7.5 # hypothetical height from house to gauge
+offset = 4.91 # height from house to gauge
 flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
 ```
 
@@ -163,7 +165,7 @@ discount_rate = 0.05
 house_area = 1000u"ft^2"
 house_value = 250_000
 
-offset = 7.5# hypothetical height from house to gauge
+offset = 4.91# hypothetical height from house to gauge
 flood_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
 
 
@@ -177,7 +179,7 @@ end
 
 ```
 
-For the given SOW of a house 7.5 ft above sea level, a discount rate of 5%, and the flooding and damage functions given, the higher we elevate the house, the lower our net present value.  The cost of elevating is very high, and with the numbers how we have calculated them, seems to not be worth it over a 10 year period.
+For the given SOW of a house 4.91 ft above sea level, a discount rate of 5%, and the flooding and damage functions given, the best action out of the 5 that we're looking at is to elevate the house by 7.5 feet.  The cost of elevating is very high, but the cost of damages are higher. Also, once we decide to elevate the house more than a foot, the cost of elevating further grows slowly, so it suddenly makes sense to elevate a large amount.
 
 Sensitivity test:
 
@@ -201,15 +203,15 @@ end
 #mean(npv)
 ```
 
-1. The NPV varies depending on the action.  Elevating the house a small amount is worse than elevating it a larger amount.  Still, for our state of the world, the best option seems to be not elevate the house.  
+1. The NPV varies depending on the action. Elevating the house has a very clear and immediate impact on it.
 
-2. In our case, we do see our values change as a result of the sensitivity test, but they don't change enough to change the optimal decision.  The highest NPV is still to not elevate the house for this state of the world.  This is probably because in the current SOW, the cost of raising the house is a very large portion of the NPV, and since it's not impacted by the discount rate, neither are the results.  Also, since our MonteCarlo approximation chooses 10 values, a good portion of those are probably close to the mean, making the results of the sensitivity test closer to the original.  If we only included the two extremes in a range of discount values, these results might change.
+2. In our case, we do see our values change as a result of the sensitivity test, but they don't change enough to change the optimal decision. This is probably because we're looking at this with a fairly low resolution of 2.5 feet between each decision.  If we looked at intervals every 6 inches, our optimal decision might change with the sensitivity test. 
 
-3. This analysis has a few limitations.  It does not address the value of things inside the home that might be damaged when the home is flooded, nor the psychological hardship of having one's home flooded, or the financial and emotional costs of having to deal with that.  It also doesn't address how the flood distribution may change over time if sea levels rise.  All of these factors bias the results towards not elevating the house. 
+3. This analysis has a few limitations.  As mentioned before, the resolution is low.  It does not address the value of things inside the home that might be damaged when the home is flooded, nor the psychological hardship of having one's home flooded, or the financial and emotional costs of having to deal with that.  It also doesn't address how the flood distribution may change over time if sea levels rise.
 
-We can address the first limitation by trying to approximate the value of not having to deal with these events in dollars, although this is obviously a difficult and somewhat cynical activity.  
+We can address the first limitation by looking at a greater number of decisions.  Instead of 5 decisions across 10 feet, we could look at 20.  The second issue of trying to approximate the value of not having to deal with a flooding event in dollars however is much more challenging.
 
-For the second limitation, about how our model changes with climate change, we can alter the flood distribution as time goes on and look at the impact it has on our values.  As an example, let's see what happens if we modify our program so that it simulates sea levels rising by 0.05 feet every year:
+For the third limitation, about how our model changes with climate change, we can alter the flood distribution as time goes on and look at the impact it has on our values.  As an example, let's see what happens if we modify our program so that it simulates sea levels rising by 0.05 feet every year:
 
 
 
@@ -241,5 +243,5 @@ end
 
 ```
 
-Suddenly the results change massively!  It now makes the most sense to elevate the house by 7.5 feet!
+Damages from not elevating the house are now much higher!  And the optimal elevation is still 7.5 feet.
 
