@@ -101,7 +101,7 @@ plot(
     xlabel="How High to Elevate",
     ylabel="Cost (USD)",
     label="$(house_area)",
-    tiitle="Cost of Elevating a House",
+    title="Cost of Elevating a House",
 )
 ```
 
@@ -228,18 +228,32 @@ function SeaLevel_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area
     return npv
 end
 
-
-for i in range(start=0, stop=10, length=20)
+NPVees = []
+for i in range(start=0, stop=10, step=0.5)
     Δh = i * 1u"ft"
     println("For ", Δh)
     h_dist = GeneralizedExtremeValue(flood_dist.μ - Δh.val, flood_dist.σ, flood_dist.ξ)
     npvector = SeaLevel_cost_benefit.(h_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, rates)
     npv = mean(npvector)
+    push!(NPVees, npv)
     println("NPV = ", npv)
 
 end 
 
 ```
 
-Damages from not elevating the house are now much higher!  And the optimal elevation is still 7.5 feet.
+```{julia}
+plot(
+    range(start=0, stop=10, step=0.5),
+    NPVees;
+    xlabel="Elevation",
+    ylabel="NPV (USD)",
+    label="$(house_area)",
+    title="NPV of Elevating in a rising sea level scenario",
+)
+```
+
+
+
+Damages from not elevating the house are now much higher!  And the optimal elevation is now 8.5 feet.
 
