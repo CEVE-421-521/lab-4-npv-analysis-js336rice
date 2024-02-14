@@ -198,9 +198,7 @@ for i in range(start=0, stop=10, length=5)
     npv = mean(npvector)
     println("NPV = ", npv)
 end 
-#npv = npv_cost_benefit.(flood_dist, damage_fn, elevation_cost, house_area, house_value, Δh, T, rates)
 
-#mean(npv)
 ```
 
 1. The NPV varies depending on the action. Elevating the house has a very clear and immediate impact on it.
@@ -209,7 +207,7 @@ end
 
 3. This analysis has a few limitations.  As mentioned before, the resolution is low.  It does not address the value of things inside the home that might be damaged when the home is flooded, nor the psychological hardship of having one's home flooded, or the financial and emotional costs of having to deal with that.  It also doesn't address how the flood distribution may change over time if sea levels rise.
 
-We can address the first limitation by looking at a greater number of decisions.  Instead of 5 decisions across 10 feet, we could look at 20.  The second issue of trying to approximate the value of not having to deal with a flooding event in dollars however is much more challenging.
+We can address the first limitation by looking at a greater number of decisions.  Instead of 5 decisions across 10 feet, we could look at 20.  The second issue of trying to approximate the value of not having to deal with a flooding event in dollars however is much more challenging, and how this problem should best be solved is still a matter of debate.
 
 For the third limitation, about how our model changes with climate change, we can alter the flood distribution as time goes on and look at the impact it has on our values.  As an example, let's see what happens if we modify our program so that it simulates sea levels rising by 0.05 feet every year:
 
@@ -231,7 +229,7 @@ function SeaLevel_cost_benefit(flood_dist, damage_fn, elevation_cost, house_area
 end
 
 
-for i in range(start=0, stop=10, length=5)
+for i in range(start=0, stop=10, length=20)
     Δh = i * 1u"ft"
     println("For ", Δh)
     h_dist = GeneralizedExtremeValue(flood_dist.μ - Δh.val, flood_dist.σ, flood_dist.ξ)
